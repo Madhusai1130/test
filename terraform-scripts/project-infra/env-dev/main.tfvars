@@ -1,6 +1,6 @@
 env            = "prod"
-bastion_cidr   = ["172.31.112.23/32"]
-default_vpc_id = "vpc-1234567891011"
+bastion_cidr   = ["172.31.47.177/32"]
+default_vpc_id = "vpc-003b770dccb343ddb"
 
 vpc = {
   main = {
