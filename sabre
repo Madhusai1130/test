@@ -28,15 +28,15 @@ breadcrumb() {
    git push -f origin "$bc"
 }
 # promote a release to the next one
-# stable-np follows master
+# stable-np follows main
 # stable follows stable-np
 promote(){
    if [[ "$(git diff --stat)" != "" ]]; then
        printf "clear your local repo of changes!\ngit diff --stat was not clean"
        exit 1
    fi
-   git checkout master
-   git pull origin master
+   git checkout main
+   git pull origin main
    git fetch --all --tags -f
    local release="$1"
    breadcrumb "$release"
