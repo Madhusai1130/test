@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+set -e
+usage(){
+   echo "$0
+   a dumb release helper
+   Usage:
+       [ -l | --list ]
+       [ -p | --promote ] [ stable-np | stable ]
+   Options:
+       -l, --list      list releases
+       -p, --promote   promote a release
+       -h, --help      print (this) usage guide
+   "
+}
+# list releases (stable-np/stable) on project
+list(){
+   printf "release:commit\nstable:$(git rev-list -n 1 stable)\nstable-np:$(git rev-list -n 1 stable-np)" | column -t -s ":"
+   printf "===\n"
+   git tag -l -n5 stable stable-np
+}
+# keep track of previous tag locations
+# so that we can revert easily in the future
+breadcrumb() {
+   local currTag="$1"
+   local commit=$(git rev-list -n 1 "$currTag")
+   local bc="$1-$(date +'%s')"
+   git tag -f "$bc" "$commit"
+   git push -f origin "$bc"
+}
+# promote a release to the next one
+# stable-np follows master
+# stable follows stable-np
+promote(){
+   if [[ "$(git diff --stat)" != "" ]]; then
+       printf "clear your local repo of changes!\ngit diff --stat was not clean"
+       exit 1
+   fi
+   git checkout master
+   git pull origin master
+   git fetch --all --tags -f
+   local release="$1"
+   breadcrumb "$release"
+   if [[ "$release" == "stable-np" ]]; then
+       git tag -f stable-np
+       git push -f origin stable-np
+   elif [[ "$release" == "stable" ]]; then
+       local commit=$(git rev-list -n 1 stable-np)
+       git tag -f stable "$commit"
+       git push -f origin stable
+   else
+       printf "Unknown release=$release\n"
+       usage
+       exit 1
+   fi
+}
+PARSED_ARGUMENTS=$(getopt -a -o lhap: --long list,help,all,promote: -- "$@")
+VALID_ARGUMENTS=$?
+if [[ "$VALID_ARGUMENTS" != "0" ]]; then
+   usage
+   exit 2
+fi
+eval set -- "$PARSED_ARGUMENTS"
+while :
+do
+   case "$1" in
+       -l | --list)
+           list;
+           exit 0;;
+       -p | --promote)
+           promote "$2";
+           exit 0;;
+       -h | --help)
+           usage;
+           exit 0;;
+   esac
+   usage
+   exit 0
+done
