@@ -31,26 +31,27 @@ breadcrumb() {
 # stable-np follows main
 # stable follows stable-np
 promote(){
-   if [[ "$(git diff --stat)" != "" ]]; then
-       printf "clear your local repo of changes!\ngit diff --stat was not clean"
-       exit 1
-   fi
+#    if [[ "$(git diff --stat)" != "" ]]; then
+#        printf "clear your local repo of changes!\ngit diff --stat was not clean"
+#        exit 1
+#    fi
    git checkout main
    git pull origin main
    git fetch --all --tags -f
-   local release="$1"
-   breadcrumb "$release"
+   local release="$1" ## stable-np
+   local tagcommit="$2" ## commit id
+   breadcrumb "$release" ## tagggin second commit everytime with date
    if [[ "$release" == "stable-np" ]]; then
-       git tag -f stable-np
-       git push -f origin stable-np
-   elif [[ "$release" == "stable" ]]; then
-       local commit=$(git rev-list -n 1 stable-np)
-       git tag -f stable "$commit"
-       git push -f origin stable
-   else
-       printf "Unknown release=$release\n"
-       usage
-       exit 1
+       git tag -a stable-np ${tagcommit} -m "tagging with stable-np"
+       git push origin stable-np
+#    elif [[ "$release" == "stable" ]]; then
+#        local commit=$(git rev-list -n 1 stable-np)
+#        git tag -f stable "$commit"
+#        git push -f origin stable
+#    else
+#        printf "Unknown release=$release\n"
+#        usage
+#        exit 1
    fi
 }
 PARSED_ARGUMENTS=$(getopt -a -o lhap: --long list,help,all,promote: -- "$@")
