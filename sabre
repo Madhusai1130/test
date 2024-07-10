@@ -23,9 +23,9 @@ list(){
 breadcrumb() {
    local currTag="$1"
    local commit=$(git rev-list -n 1 "$currTag")
-   local bc="$1-$(date +'%s')"
+   local bc="$1-$(date +'%s')" ## date + time
    git tag -f "$bc" "$commit"
-   git push -f origin "$bc"
+   git push -f origin "$bc" ## tag stable-np commit with stable-np-hash
 }
 # promote a release to the next one
 # stable-np follows main
@@ -43,15 +43,15 @@ promote(){
    breadcrumb "$release" ## tagggin second commit everytime with date
    if [[ "$release" == "stable-np" ]]; then
        git tag -a stable-np ${tagcommit} -m "tagging with stable-np"
-       git push origin stable-np
-#    elif [[ "$release" == "stable" ]]; then
-#        local commit=$(git rev-list -n 1 stable-np)
-#        git tag -f stable "$commit"
-#        git push -f origin stable
-#    else
-#        printf "Unknown release=$release\n"
-#        usage
-#        exit 1
+       git push -f origin stable-np
+   elif [[ "$release" == "stable" ]]; then
+       local commit=$(git rev-list -n 1 stable-np)
+       git tag -f stable "$commit"
+       git push -f origin stable
+   else
+       printf "Unknown release=$release\n"
+       usage
+       exit 1
    fi
 }
 PARSED_ARGUMENTS=$(getopt -a -o lhap: --long list,help,all,promote: -- "$@")
